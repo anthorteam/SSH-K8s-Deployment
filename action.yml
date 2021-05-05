@@ -51,9 +51,9 @@ runs:
     shell: bash
   - name: Apply deployment
     run: |
-      echo -e ${{ inputs.SSH_KEY }} > ${{ github.action_path }}/key 
+      echo -e ${{ inputs.SSH_KEY }} > key 
       python3 ${{ github.action_path }}/deploy.py \
-        -k ${{ github.action_path }}/key \
+        -k key \
         -f ${{ inputs.DEPLOYMENT_FILE }} \
         -h ${{ inputs.SSH_HOST }} \
         -p ${{ inputs.SSH_PORT }} \
