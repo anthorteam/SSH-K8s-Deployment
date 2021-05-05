@@ -43,9 +43,6 @@ runs:
   - name: Install Fabric
     run: python3 -m pip install Fabric
     shell: bash
-  - name: Save SSH key in file
-    run: echo -e ${{ inputs.SSH_KEY }} > ${{ github.action_path }}/key
-    shell: bash
   - name: Replace variables in deployment
     env:
       IMAGE: ${{ inputs.IMAGE }}
@@ -53,16 +50,14 @@ runs:
     run: perl -p -i.bak -E 's:{\{\s*(\S+?)\s*\}}:$ENV{$1} // die "$1 not set":ge' ${{ inputs.DEPLOYMENT_FILE }}
     shell: bash
   - name: Apply deployment
-    run: > 
-      python3 ${{ github.action_path }}/deploy.py 
-      -k ${{ github.action_path }}/key
-      -f ${{ inputs.DEPLOYMENT_FILE }}
-      -h ${{ inputs.SSH_HOST }}
-      -p ${{ inputs.SSH_PORT }}
-      -u ${{ inputs.SSH_USER }}
-      -n ${{ inputs.K8S_NAMESPACE }}
-      -t ${{ inputs.ROLLOUT_TIMEOUT }}
-    shell: bash
-  - name: Remove key file
-    run: rm -rf ${{ github.action_path }}/key
+    run: |
+      echo -e ${{ inputs.SSH_KEY }} > ${{ github.action_path }}/key 
+      python3 ${{ github.action_path }}/deploy.py \
+        -k ${{ github.action_path }}/key \
+        -f ${{ inputs.DEPLOYMENT_FILE }} \
+        -h ${{ inputs.SSH_HOST }} \
+        -p ${{ inputs.SSH_PORT }} \
+        -u ${{ inputs.SSH_USER }} \
+        -n ${{ inputs.K8S_NAMESPACE }} \
+        -t ${{ inputs.ROLLOUT_TIMEOUT }}
     shell: bash
