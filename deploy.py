@@ -8,9 +8,13 @@ from fabric import Connection
 def deploy(c, file, namespace, timeout):
     c.put(f'{file}',
           f'/tmp/deploy.yml')
+    print('kubectl config set-context --current --namespace={namespace}')
     c.run('kubectl config set-context --current --namespace={namespace}')
+    print('kubectl apply -f /tmp/deploy.yml')
     c.run('kubectl apply -f /tmp/deploy.yml')
+    print(f'kubectl rollout status deployment -f /tmp/deploy --timeout={timeout}m')
     c.run(f'kubectl rollout status deployment -f /tmp/deploy --timeout={timeout}m')
+    print('rm /tmp/deploy.yml')
     c.run('rm /tmp/deploy.yml')
 
 
