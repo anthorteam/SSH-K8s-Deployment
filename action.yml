@@ -1,0 +1,68 @@
+name: 'Apply K8s Deployment in SSH Server'
+description: >
+  Applies a k8s template into a SSH server. This gets the variables
+  to fill the template from the environment, so to use a variable TEST
+  just add {{ TEST }} to your template and set the variable in the
+  step on the action.
+inputs:
+  SSH_HOST:
+    description: The IP or resolvable hostname of the server
+    required: true
+  SSH_PORT:
+    description: The port in which the SSH server is listening
+    required: true
+    default: '22'
+  SSH_USER:
+    description: The username in the remote host
+    required: true
+    default: deploy
+  SSH_KEY:
+    description: The ssh key to use for login
+    required: true
+  K8S_NAMESPACE:
+    description: The namespace in which to deploy
+    required: true
+    default: default
+  DEPLOYMENT_FILE:
+    description: The template file to deploy
+    required: true
+    default: deploy/deployment.yml
+  ROLLOUT_TIMEOUT:
+    description: The time in minutes to wait for the deployment to complete
+    required: true
+    default: '1'
+  IMAGE:
+    description: The image to add on the deployment
+    required: true
+  TAG:
+    description: The image tag to add on the deployment
+    required: true
+runs:
+  using: "composite"
+  steps:
+  - name: Install Fabric
+    run: python3 -m pip install Fabric
+    shell: bash
+  - name: Save SSH key in file
+    run: echo -e ${{ inputs.SSH_KEY }} > ${{ github.action_path }}/key
+    shell: bash
+  - name: Replace variables in deployment
+    env:
+      IMAGE: ${{ inputs.IMAGE }}
+      TAG: ${{ inputs.TAG }}
+    run: perl -p -i.bak -E 's:{\{\s*(\S+?)\s*\}}:$ENV{$1} // die "$1 not set":ge' ${{ inputs.DEPLOYMENT_FILE }}
+    shell: bash
+  - name: Apply deployment
+    run: > 
+      python3 ${{ github.action_path }}/deploy.py 
+      -k ${{ github.action_path }}/key
+      -f ${{ inputs.DEPLOYMENT_FILE }}
+      -h ${{ inputs.SSH_HOST }}
+      -p ${{ inputs.SSH_PORT }}
+      -u ${{ inputs.SSH_USER }}
+      -n ${{ inputs.K8S_NAMESPACE }}
+      -t ${{ inputs.ROLLOUT_TIMEOUT }}
+    shell: bash
+  - name: Remove key file
+    run: rm -rf ${{ github.action_path }}/key
+    shell: bash
