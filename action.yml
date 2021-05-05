@@ -16,9 +16,6 @@ inputs:
     description: The username in the remote host
     required: true
     default: deploy
-  SSH_KEY:
-    description: The ssh key to use for login
-    required: true
   K8S_NAMESPACE:
     description: The namespace in which to deploy
     required: true
@@ -51,7 +48,6 @@ runs:
     shell: bash
   - name: Apply deployment
     run: |
-      echo -e ${{ inputs.SSH_KEY }} > key 
       python3 ${{ github.action_path }}/deploy.py \
         -k key \
         -f ${{ inputs.DEPLOYMENT_FILE }} \
