@@ -24,9 +24,12 @@ inputs:
     description: The template file to deploy
     required: true
     default: deploy/deployment.yml
+  DEPLOYMENT_NAME:
+    description: The deployment to watch for rollout
+    required: false
   ROLLOUT_TIMEOUT:
     description: The time in minutes to wait for the deployment to complete
-    required: true
+    required: false
     default: '1'
   IMAGE:
     description: The image to add on the deployment
@@ -55,5 +58,6 @@ runs:
         -p ${{ inputs.SSH_PORT }} \
         -u ${{ inputs.SSH_USER }} \
         -n ${{ inputs.K8S_NAMESPACE }} \
-        -t ${{ inputs.ROLLOUT_TIMEOUT }}
+        -t ${{ inputs.ROLLOUT_TIMEOUT }} \
+        -d ${{ inputs.DEPLOYMENT_NAME }}
     shell: bash

@@ -5,12 +5,13 @@ import sys
 from fabric import Connection
 
 
-def deploy(c, file, namespace, timeout):
+def deploy(c, file, namespace, timeout, deployment):
     c.put(f'{file}',
           f'/tmp/deploy.yml')
     c.run(f'kubectl config set-context --current --namespace={namespace}')
     c.run('kubectl apply -f /tmp/deploy.yml')
-    c.run(f'kubectl rollout status deployment -f /tmp/deploy.yml --timeout={timeout}m')
+    if deployment is not None:
+        c.run(f'kubectl rollout status deployment {deployment} --timeout={timeout}m')
     c.run('rm /tmp/deploy.yml')
 
 
@@ -29,7 +30,7 @@ def usage():
 
 if __name__ == '__main__':
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h:p:u:k:n:f:t:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "h:p:u:k:n:f:t:d:v", ["help"])
     except getopt.GetoptError as err:
         print(str(err))  # will print something like "option -a not recognized"
         usage()
@@ -44,6 +45,7 @@ if __name__ == '__main__':
     NAMESPACE = 'default'
     FILE = 'deploy/deployment.yml'
     TIMEOUT = 1
+    DEPLOYMENT = None
     for o, value in opts:
         if o == "-v":
             verbose = True
@@ -68,9 +70,11 @@ if __name__ == '__main__':
             FILE = value
         elif o == "-t":
             TIMEOUT = value
+        elif o == "-d":
+            DEPLOYMENT = value
         else:
             assert False, "unhandled option"
 
     c = Connection(HOST, port=PORT, user=USER,
                    connect_kwargs={"key_filename": KEY_FILE})
-    deploy(c, FILE, NAMESPACE, TIMEOUT)
+    deploy(c, FILE, NAMESPACE, TIMEOUT, DEPLOYMENT)
