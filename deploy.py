@@ -10,7 +10,7 @@ def deploy(c, file, namespace, timeout):
           f'/tmp/deploy.yml')
     c.run(f'kubectl config set-context --current --namespace={namespace}')
     c.run('kubectl apply -f /tmp/deploy.yml')
-    c.run(f'kubectl rollout status deployment -f /tmp/deploy --timeout={timeout}m')
+    c.run(f'kubectl rollout status deployment -f /tmp/deploy.yml --timeout={timeout}m')
     c.run('rm /tmp/deploy.yml')
 
 
